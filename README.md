@@ -36,5 +36,5 @@ c:
 ```
 6. Initial Prolog
 ```
-PROLOG>EXE
+PROLOG.EXE
 ```
