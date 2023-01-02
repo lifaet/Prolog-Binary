@@ -1,6 +1,6 @@
 # Download
  Download the Prolog files from and click on “Download zip” OR “Clone” it in your system
-![](https://media.geeksforgeeks.org/wp-content/uploads/20210322114016/23.png)
+![](https://raw.githubusercontent.com/lifaet/Prolog-Binary/main/Screenshot%202023-01-02%20151236.png)
 
 Or Download Zip Directly from here
 https://github.com/lifaet/Prolog-Binary/archive/refs/heads/main.zip
