@@ -34,7 +34,7 @@ MOUNT c "C:\Prolog-Binary"
 ```
 c:
 ```
-6. Initial Prolog
+6. Initialize Prolog
 ```
 PROLOG.EXE
 ```
