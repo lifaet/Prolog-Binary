@@ -5,6 +5,10 @@
 Or Download Zip Directly from here
 https://github.com/lifaet/Prolog-Binary/archive/refs/heads/main.zip
 
+
+# DOSBox Download Link
+https://www.dosbox.com/download.php?main=1
+
 # Introduction
 
 Prolog is a logic programming language. It has important role in artificial intelligence. Unlike many other programming languages, Prolog is intended primarily as a declarative programming language. In prolog, logic is expressed as relations (called as Facts and Rules). Core heart of prolog lies at the logic being applied. Formulation or Computation is carried out by running a query over these relations.
@@ -17,6 +21,3 @@ Prolog is a logic programming language. It has important role in artificial inte
 - Robot Planning
 - Automation System
 - Problem Solving
-
-# DOSBox Download Link
-https://www.dosbox.com/download.php?main=1
