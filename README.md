@@ -25,7 +25,7 @@ https://www.dosbox.com/download.php?main=1
 # Installation
 1. Download Prolog Binary and unzip it to C drive.
 2. Download DOSBox and install it.
-3.Open DOSBox and Enter the following Command.
+3. Open DOSBox and Enter the following Command.
 4. Mount The Prolog Directory
 ```
 MOUNT c "C:\Prolog-Binary"
