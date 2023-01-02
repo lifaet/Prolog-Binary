@@ -1,0 +1,774 @@
+                     Prolog stands for PROgramming in LOGic. It was developed from a foundation of logical theorem proving and originally used for research in natural language processing. Although its popularity has sprung up mainly in the artificial intelligence (AI) community, where it has been used for applications such as expert systems, natural language, and intelligent databases, it is also useful for more conventional types of applications. It allows for more rapid development and prototyping than most languages because it is semantically close to the logical specification of a program. As such, it approaches the ideal of executable program specifications. 
+
+Programming in Prolog is significantly different from conventional procedural programming and requires a readjustment in the way one thinks about programming. Logical relationships are asserted, and Prolog is used to determine whether or not certain statements are true, and if true, what variable bindings make them true. This leads to a very declarative style of programming. 
+
+Prolog is a fascinating language from a purely theoretical viewpoint.  Prolog as a practical programming language, well suited for full application development. 
+
+Prolog contains mundane programming constructs, symbolic reasoning, natural language, database, and logic. 
+
+Through exercises you will also build a simple expert system, an intelligent genealogical database, and a mundane customer order entry application. 
+
+The game will be implemented from the bottom up, because that fits better with the order in which the topics will be introduced. Prolog is equally adept at supporting top-down or inside-out program development. 
+
+A Prolog program exists in the listener's workspace as a collection of small modular units, called predicates. They are similar to subroutines in conventional languages, but on a smaller scale. 
+
+The predicates can be added and tested separately in a Prolog program, which makes it possible to incrementally develop the applications described in the book. Each chapter will call for the addition of more and more predicates to the game. Similarly, the exercises will ask you to add predicates to each of the other applications. 
+
+Lists are powerful data structures for holding and manipulating groups of things. 
+
+In Prolog, a list is simply a collection of terms. The terms can be any Prolog data types, including structures and other lists. Syntactically, a list is denoted by square brackets with the terms separated by commas. For example, a list of things in the kitchen is represented as 
+
+ [apple, broccoli, refrigerator]
+
+This gives us an alternative way of representing the locations of things. Rather than having separate location predicates for each thing, we can have one location predicate per container, with a list of things in the container. 
+
+loc_list([apple, broccoli, crackers], kitchen).
+loc_list([desk, computer], office).
+loc_list([flashlight, envelope], desk).
+loc_list([stamp, key], envelope).
+loc_list(['washing machine'], cellar).
+loc_list([nani], 'washing machine').
+There is a special list, called the empty list, which is represented by a set of empty brackets ([]). It is also referred to as nil. It can describe the lack of contents of a place or thing. 
+
+loc_list([], hall)
+Unification works on lists just as it works on other data structures. With what we now know about lists we can ask 
+
+?- loc_list(X, kitchen).
+X = [apple, broccoli, crackers] 
+
+?- [_,X,_] = [apples, broccoli, crackers].
+X = broccoli 
+This last example is an impractical method of getting at list elements, since the patterns won't unify unless both lists have the same number of elements. 
+
+For lists to be useful, there must be easy ways to access, add, and delete list elements. Moreover, we should not have to concern ourselves about the number of list items, or their order. 
+
+Two Prolog features enable us to accomplish this easy access. One is a special notation that allows reference to the first element of a list and the list of remaining elements, and the other is recursion. 
+
+These two features allow us to write list utility predicates, such as member/2, which finds members of a list, and append/3, which joins two lists together. List predicates all follow a similar strategy--try something with the first element of a list, then recursively repeat the process on the rest of the list. 
+
+First, the special notation for list structures. 
+
+ [X | Y]
+When this structure is unified with a list, X is bound to the first element of the list, called the head. Y is bound to the list of remaining elements, called the tail. 
+
+We will now look at some examples of unification using lists. The following example successfully unifies because the two structures are syntactically equivalent. Note that the tail is a list. 
+
+?- [a|[b,c,d]] = [a,b,c,d].
+yes
+This next example fails because of misuse of the bar (|) symbol. What follows the bar must be a single term, which for all practical purposes must be a list. The example incorrectly has three terms after the bar. 
+
+?- [a|b,c,d] = [a,b,c,d].
+no
+Here are some more examples. 
+
+?- [H|T] = [apple, broccoli, refrigerator].
+H = apple
+T = [broccoli, refrigerator] 
+
+?- [H|T] = [a, b, c, d, e].
+H = a
+T = [b, c, d, e] 
+
+?- [H|T] = [apples, bananas].
+H = apples
+T = [bananas] 
+In the previous and following examples, the tail is a list with one element. 
+
+?- [H|T] = [a, [b,c,d]].
+H = a
+T = [[b, c, d]] 
+In the next case, the tail is the empty list. 
+
+?- [H|T] = [apples].
+H = apples
+T = [] 
+The empty list does not unify with the standard list syntax because it has no head. 
+
+?- [H|T] = [].
+no
+NOTE: This last failure is important, because it is often used to test for the boundary condition in a recursive routine. That is, as long as there are elements in the list, a unification with the [X|Y] pattern will succeed. When there are no elements in the list, that unification fails, indicating that the boundary condition applies. 
+
+We can specify more than just the first element before the bar (|). In fact, the only rule is that what follows it should be a list. 
+
+?- [One, Two | T] = [apple, sprouts, fridge, milk].
+One = apple
+Two = sprouts
+T = [fridge, milk] 
+Notice in the next examples how each of the variables is bound to a structure that shows the relationships between the variables. The internal variable numbers indicate how the variables are related. In the first example Z, the tail of the right-hand list, is unified with [Y|T]. In the second example T, the tail of the left-hand list is unified with [Z]. In both cases, Prolog looks for the most general way to relate or bind the variables. 
+
+?- [X,Y|T] = [a|Z].
+X = a
+Y = _01
+T = _03
+Z = [_01 | _03] 
+
+?- [H|T] = [apple, Z].
+H = apple
+T = [_01]
+Z = _01 
+Study these last two examples carefully, because list unification is critical in building list utility predicates. 
+
+A list can be thought of as a head and a tail list, whose head is the second element and whose tail is a list whose head is the third element, and so on. 
+
+?- [a|[b|[c|[d|[]]]]] = [a,b,c,d].
+yes
+We have said a list is a special kind of structure. In a sense it is, but in another sense it is just like any other Prolog term. The last example gives us some insight into the true nature of the list. It is really an ordinary two-argument predicate. The first argument is the head and the second is the tail. If we called it dot/2, then the list [a,b,c,d] would be 
+
+dot(a,dot(b,dot(c,dot(d,[]))))
+In fact, the predicate does exist, at least conceptually, and it is called dot, but it is represented by a period (.) instead of dot. 
+
+To see the dot notation, we use the built-in predicate display/1, which is similar to write/1, except it always uses the dot syntax for lists when it writes to the console. 
+
+?- X = [a,b,c,d], write(X), nl, display(X), nl.
+ [a,b,c,d]
+.(a,.(b,.(c,.d(,[]))))
+
+?- X = [Head|Tail], write(X), nl, display(X), nl.
+ [_01, _02]
+.(_01,_02)
+
+?- X = [a,b,[c,d],e], write(X), nl, display(X), nl.
+ [a,b,[c,d],e]
+.(a,.(b,.(.(c,.(d,[])),.(e,[]))))
+From these examples it should be clear why there is a different syntax for lists. The easier syntax makes for easier reading, but sometimes obscures the behavior of the predicate. It helps to keep this "real" structure of lists in mind when working with predicates that manipulate lists. 
+
+This structure of lists is well-suited for the writing of recursive routines. The first one we will look at is member/2, which determines whether or not a term is a member of a list. 
+
+As with most recursive predicates, we will start with the boundary condition, or the simple case. An element is a member of a list if it is the head of the list. 
+
+member(H,[H|T]).
+This clause also illustrates how a fact with variable arguments acts as a rule. 
+
+The second clause of member/2 is the recursive rule. It says an element is a member of a list if it is a member of the tail of the list. 
+
+member(X,[H|T]) :- member(X,T).
+The full predicate is 
+
+member(H,[H|T]).
+member(X,[H|T]) :- member(X,T).
+Note that both clauses of member/2 expect a list as the second argument. Since T in [H|T] in the second clause is itself a list, the recursive call to member/2 works. 
+
+?- member(apple, [apple, broccoli, crackers]).
+yes
+
+?- member(broccoli, [apple, broccoli, crackers]).
+yes
+
+?- member(banana, [apple, broccoli, crackers]).
+no
+Figure 11.1 has a full annotated trace of member/2. 
+
+The query is 
+?- member(b, [a,b,c]).
+
+1-1 CALL member(b,[a,b,c])
+The goal pattern fails to unify with the head of the first clause of member/2, because the pattern in the head of the first clause calls for the head of the list and first argument to be identical. The goal pattern can unify with the head of the second clause.
+
+1-1 try (2) member(b,[a,b,c])
+The second clause recursively calls another copy of member/2.
+
+    2-1 CALL member(b,[b,c])
+It succeeds because the call pattern unifies with the head of the first clause.
+
+    2-1 EXIT (1) member(b,[b,c]) 
+The success ripples back to the outer level.
+
+1-1 EXIT (2) member(b,[a,b,c]) 
+     yes
+ 
+
+Figure 11.1. Trace of member/2 
+
+As with many Prolog predicates, member/2 can be used in multiple ways. If the first argument is a variable, member/2 will, on backtracking, generate all of the terms in a given list. 
+
+?- member(X, [apple, broccoli, crackers]).
+X = apple ;
+X = broccoli ;
+X = crackers ;
+no
+We will now trace this use of member/2 using the internal variables. Remember that each level has its own unique variables, but that they are tied together based on the unification patterns between the goal at one level and the head of the clause on the next level. 
+
+In this case the pattern is simple in the recursive clause of member. The head of the clause unifies X with the first argument of the original goal, represented by _0 in the following trace. The body has a call to member/2 in which the first argument is also X, therefore causing the next level to unify with the same _0. 
+
+Figure 11.2 has the trace. 
+
+The query is 
+?- member(X,[a,b,c]).
+The goal succeeds by unification with the head of the first clause, if X = a.
+
+1-1 CALL member(_0,[a,b,c]) 
+1-1 EXIT (1) member(a,[a,b,c]) 
+    X = a ;
+Backtracking unbinds the variable and the second clause is tried.
+
+1-1 REDO member(_0,[a,b,c]) 
+1-1 try (2) member(_0,[a,b,c])
+It succeeds on the second level, just as on the first level.
+
+    2-1 CALL member(_0,[b,c]) 
+    2-1 EXIT (1) member(b,[b,c]) 
+1-1 EXIT  member(b,[a,b,c]) 
+    X = b ;
+Backtracking continues onto the third level, with similar results.
+
+    2-1 REDO member(_0,[b,c]) 
+    2-1 try (2) member(_0,[b,c])
+        3-1 CALL member(_0,[c]) 
+        3-1 EXIT (1) member(c,[c]) 
+    2-1 EXIT (2) member(c,[b,c]) 
+1-1 EXIT (2) member(c,[a,b,c]) 
+    X = c ;
+Further backtracking causes an attempt to find a member of the empty list. The empty list does not unify with either of the list patterns in the member/2 clauses, so the query fails back to the beginning.
+
+        3-1 REDO member(_0,[c]) 
+        3-1 try (2) member(_0,[c])
+            4-1 CALL member(_0,[])
+            4-1 FAIL member(_0,[])
+        3-1 FAIL member(_0,[c])
+    2-1 FAIL member(_0,[b,c])
+1-1 FAIL member(_0,[a,b,c])
+     no
+ 
+
+Figure 11.2. Trace of member/2 generating elements of a list 
+
+Another very useful list predicate builds lists from other lists or alternatively splits lists into separate pieces. This predicate is usually called append/3. In this predicate the second argument is appended to the first argument to yield the third argument. For example 
+
+?- append([a,b,c],[d,e,f],X).
+X = [a,b,c,d,e,f]
+It is a little more difficult to follow, since the basic strategy of working from the head of the list does not fit nicely with the problem of adding something to the end of a list. append/3 solves this problem by reducing the first list recursively. 
+
+The boundary condition states that if a list X is appended to the empty list, the resulting list is also X. 
+
+append([],X,X).
+The recursive condition states that if list X is appended to list [H|T1], then the head of the new list is also H, and the tail of the new list is the result of appending X to the tail of the first list. 
+
+append([H|T1],X,[H|T2]) :-
+  append(T1,X,T2).
+The full predicate is 
+
+append([],X,X).
+append([H|T1],X,[H|T2]) :-
+  append(T1,X,T2).
+Real Prolog magic is at work here, which the trace alone does not reveal. At each level, new variable bindings are built, that are unified with the variables of the previous level. Specifically, the third argument in the recursive call to append/3 is the tail of the third argument in the head of the clause. These variable relationships are included at each step in the annotated trace shown in Figure 11.3. 
+
+The query is 
+?- append([a,b,c],[d,e,f],X).
+1-1 CALL append([a,b,c],[d,e,f],_0)
+    X = _0
+    2-1 CALL append([b,c],[d,e,f],_5)
+        _0 = [a|_5]
+        3-1 CALL append([c],[d,e,f],_9)
+            _5 = [b|_9]
+            4-1 CALL append([],[d,e,f],_14)
+                _9 = [c|_14]
+By making all the substitutions of the variable relationships, we can see that at this point X is bound as follows (thinking in terms of the dot notation for lists might make append/3 easier to understand).
+
+X = [a|[b|[c|_14]]]
+We are about to hit the boundary condition, as the first argument has been reduced to the empty list. Unifying with the first clause of append/3 will bind _14 to a value, namely [d,e,f], thus giving us the desired result for X, as well as all the other intermediate variables. Notice the bound third arguments at each level, and compare them to the variables in the call ports above.
+
+            4-1 EXIT (1) append([],[d,e,f],[d,e,f])
+        3-1 EXIT (2) append([c],[d,e,f],[c,d,e,f])
+    2-1 EXIT (2) append([b,c],[d,e,f],[b,c,d,e,f])
+1-1 EXIT (2)append([a,b,c],[d,e,f],[a,b,c,d,e,f])
+    X = [a,b,c,d,e,f] 
+ 
+
+Figure 11.3. Trace of append/3 
+
+Like member/2, append/3 can also be used in other ways, for example, to break lists apart as follows. 
+
+?- append(X,Y,[a,b,c]).
+X = []
+Y = [a,b,c] ;
+
+X = [a]
+Y = [b,c] ;
+
+X = [a,b]
+Y = [c] ;
+
+X = [a,b,c]
+Y = [] ;
+no
+Using the List Utilities 
+Now that we have tools for manipulating lists, we can use them. For example, if we choose to use loc_list/2 instead of location/2 for storing things, we can write a new location/2 that behaves exactly like the old one, except that it computes the answer rather than looking it up. This illustrates the sometimes fuzzy line between data and procedure. The rest of the program cannot tell how location/2 gets its results, whether as data or by computation. In either case it behaves the same, even on backtracking. 
+
+location(X,Y):-  
+  loc_list(List, Y),
+  member(X, List).
+In the game, it will be necessary to add things to the loc_lists whenever something is put down in a room. We can write add_thing/3 which uses append/3. If we call it with NewThing and Container, it will provide us with the NewList. 
+
+add_thing(NewThing, Container, NewList):-  
+  loc_list(OldList, Container),
+  append([NewThing],OldList, NewList).
+Testing it gives 
+
+?- add_thing(plum, kitchen, X).
+X = [plum, apple, broccoli, crackers]
+However, this is a case where the same effect can be achieved through unification and the [Head|Tail] list notation. 
+
+add_thing2(NewThing, Container, NewList):- 
+  loc_list(OldList, Container),
+  NewList = [NewThing | OldList].
+It works the same as the other one. 
+
+?- add_thing2(plum, kitchen, X).
+X = [plum, apple, broccoli, crackers]
+We can simplify it one step further by removing the explicit unification, and using the implicit unification that occurs at the head of a clause, which is the preferred form for this type of predicate. 
+
+add_thing3(NewTh, Container,[NewTh|OldList]) :-
+  loc_list(OldList, Container).
+It also works the same. 
+
+?- add_thing3(plum, kitchen, X).
+X = [plum, apple, broccoli, crackers]
+In practice, we might write put_thing/2 directly without using the separate add_thing/3 predicate to build a new list for us. 
+
+put_thing(Thing,Place) :-
+  retract(loc_list(List, Place)),
+  asserta(loc_list([Thing|List],Place)).
+Whether you use multiple database entries or lists for situations, such as we have with locations of things, is largely a matter of style. Your experience will lead you to one or the other in different situations. Sometimes backtracking over multiple predicates is a more natural solution to a problem and sometimes recursively dealing with a list is more natural. 
+
+You might find that some parts of a particular application fit better with multiple facts in the database and other parts fit better with lists. In these cases it is useful to know how to go from one format to the other. 
+
+Going from a list to multiple facts is simple. You write a recursive routine that continually asserts the head of the list. In this example we create individual facts in the predicate stuff/1. 
+
+break_out([]).
+break_out([Head | Tail]):-
+  assertz(stuff(Head)),
+  break_out(Tail).
+Here's how it works. 
+
+?- break_out([pencil, cookie, snow]).
+yes
+
+?- stuff(X).
+X = pencil ;
+X = cookie ;
+X = snow ;
+no
+Transforming multiple facts into a list is more difficult. For this reason most Prologs provide built-in predicates that do the job. The most common one is findall/3. The arguments are 
+
+arg1 
+A pattern for the terms in the resulting list 
+arg2 
+A goal pattern 
+arg3 
+The resulting list 
+findall/3 automatically does a full backtracking search of the goal pattern and stores each result in the list. It can recover our stuff/1 back into a list. 
+
+?- findall(X, stuff(X), L).
+L = [pencil, cookie, snow]
+Fancier patterns are available. This is how to get a list of all the rooms connecting to the kitchen. 
+
+?- findall(X, connect(kitchen, X), L).
+L = [office, cellar, 'dining room']
+The pattern in the first argument can be even fancier and the second argument can be a conjunction of goals. Parentheses are used to group the conjunction of goals in the second argument, thus avoiding the potential ambiguity. Here findall/3 builds a list of structures that locates the edible things. 
+
+?- findall(foodat(X,Y), (location(X,Y) , edible
+
+15
+
+
+Natural Language
+Prolog is especially well-suited for developing natural language systems. In this chapter we will create an English front end for Nani Search. 
+
+But before moving to Nani Search, we will develop a natural language parser for a simple subset of English. Once that is understood, we will use the same technology for Nani Search. 
+
+The simple subset of English will include sentences such as 
+
+The dog ate the bone. 
+The big brown mouse chases a lazy cat. 
+This grammar can be described with the following grammar rules. (The first rule says a sentence is made up of a noun phrase followed by a verb phrase. The last rule says an adjective is either 'big', or 'brown', or 'lazy.' The '|' means 'or.') 
+
+sentence : 
+nounphrase, verbphrase. 
+nounphrase : 
+determiner, nounexpression. 
+nounphrase : 
+nounexpression. 
+nounexpression : 
+noun. 
+nounexpression : 
+adjective, nounexpression. 
+verbphrase : 
+verb, nounphrase. 
+determiner : 
+the | a. 
+noun : 
+dog | bone | mouse | cat. 
+verb : 
+ate | chases. 
+adjective : 
+big | brown | lazy. 
+To begin with, we will simply determine if a sentence is a legal sentence. In other words, we will write a predicate sentence/1, which will determine if its argument is a sentence. 
+
+The sentence will be represented as a list of words. Our two examples are 
+
+[the,dog,ate,the,bone]
+[the,big,brown,mouse,chases,a,lazy,cat]
+There are two basic strategies for solving a parsing problem like this. The first is a generate-and-test strategy, where the list to be parsed is split in different ways, with the splittings tested to see if they are components of a legal sentence. We have already seen that we can use append/3 to generate the splittings of a list. With this approach, the top-level rule would be 
+
+sentence(L) :-
+  append(NP, VP, L),
+  nounphrase(NP),
+  verbphrase(VP).
+The append/3 predicate will generate possible values for the variables NP and VP, by splitting the original list L. The next two goals test each of the portions of the list to see if they are grammatically correct. If not, backtracking into append/3 causes another possible splitting to be generated. 
+
+The clauses for nounphrase/1 and verbphrase/1 are similar to sentence/1, and call further predicates that deal with smaller units of a sentence, until the word definitions are met, such as 
+
+verb([ate]).
+verb([chases]).
+
+noun([mouse]).
+noun([dog]).
+Difference Lists 
+The above strategy, however, is extremely slow because of the constant generation and testing of trial solutions that do not work. Furthermore, the generating and testing is happening at multiple levels. 
+
+The more efficient strategy is to skip the generation step and pass the entire list to the lower level predicates, which in turn will take the grammatical portion of the sentence they are looking for from the front of the list and return the remainder of the list. 
+
+To do this, we use a structure called a difference list.It is two related lists, in which the first list is the full list and the second list is the remainder. The two lists can be two arguments in a predicate, but they are more readable if represented as a single argument with the minus sign (-) operator, like X-Y. 
+
+Here then is the first grammar rule using difference lists. A list S is a sentence if we can extract a nounphrase from the beginning of it, with a remainder list of S1, and if we can extract a verb phrase from S1 with the empty list as the remainder. 
+
+sentence(S) :-
+  nounphrase(S-S1),
+  verbphrase(S1-[]).
+Before filling in nounphrase/1 and verbphrase/1, we will jump to the lowest level predicates that define the actual words. They too must be difference lists. They are simple. If the head of the first list is the word, the remainder list is simply the tail. 
+
+noun([dog|X]-X).
+noun([cat|X]-X).
+noun([mouse|X]-X).
+
+verb([ate|X]-X).
+verb([chases|X]-X).
+
+adjective([big|X]-X).
+adjective([brown|X]-X).
+adjective([lazy|X]-X).
+
+determiner([the|X]-X).
+determiner([a|X]-X).
+Testing shows how the difference lists work. 
+
+?- noun([dog,ate,the,bone]-X).
+X = [ate,the,bone] 
+
+?- verb([dog,ate,the,bone]-X).
+no
+Continuing with the new grammar rules we have 
+
+nounphrase(NP-X):-
+  determiner(NP-S1),
+  nounexpression(S1-X).
+nounphrase(NP-X):-
+  nounexpression(NP-X).
+
+nounexpression(NE-X):-
+  noun(NE-X).
+nounexpression(NE-X):-
+  adjective(NE-S1),
+  nounexpression(S1-X).
+
+verbphrase(VP-X):-
+  verb(VP-S1),
+  nounphrase(S1-X).
+NOTE: The recursive call in the definition of nounexpression/1. It allows sentences to have any number of adjectives before a noun. 
+
+These rules can now be used to test sentences. 
+
+?- sentence([the,lazy,mouse,ate,a,dog]).
+yes
+
+?- sentence([the,dog,ate]).
+no
+
+?- sentence([a,big,brown,cat,chases,a,lazy,brown,dog]).
+yes
+
+?- sentence([the,cat,jumps,the,mouse]).
+no
+Figure 15.1 contains a trace of the sentence/1 predicate for a simple sentence. 
+
+The query is 
+?- sentence([dog,chases,cat]).
+
+1-1 CALL sentence([dog,chases,cat])
+    2-1 CALL nounphrase([dog,chases,cat]-_0)
+        3-1 CALL determiner([dog,chases,cat]-_0)
+        3-1 FAIL determiner([dog,chases,cat]-_0)
+    2-1 REDO nounphrase([dog,chases,cat]-_0)
+        3-1 CALL nounexpression([dog,chases,cat]- _0)
+            4-1 CALL noun([dog,chases,cat]-_0)
+            4-1 EXIT noun([dog,chases,cat]-  
+            [chases,cat])
+Notice how the binding of the variable representing the remainder list has been deferred until the lowest level is called. Each level unifies its remainder with the level before it, so when the vocabulary level is reached, the binding of the remainder to the tail of the list is propagated back up through the nested calls. 
+
+        3-1 EXIT nounexpression([dog,chases,cat]-
+                        [chases,cat])
+    2-1 EXIT nounphrase([dog,chases,cat]-
+                    [chases,cat])
+Now that we have the noun phrase, we can see if the remainder is a verb phrase.
+
+    2-2 CALL verbphrase([chases,cat]-[])
+        3-1 CALL verb([chases,cat]-_4)
+        3-1 EXIT verb([chases,cat]-[cat])
+Finding the verb was easy, now for the final noun phrase.
+
+        3-2 CALL nounphrase([cat]-[])
+            4-1 CALL determiner([cat]-[])
+            4-1 FAIL determiner([cat]-[])
+        3-2 REDO nounphrase([cat]-[])
+            4-1 CALL nounexpression([cat]-[])
+                5-1 CALL noun([cat]-[])
+                5-1 EXIT noun([cat]-[])
+            4-1 EXIT nounexpression([cat]-[])
+        3-2 EXIT nounphrase([cat]-[])
+    2-2 EXIT verbphrase([chases,cat]-[])
+1-1 EXIT sentence([dog,chases,cat])
+      yes
+ 
+
+Figure 15.1. Trace of sentence/1 
+
+Natural Language Front End
+We will now use this sentence-parsing technique to build a simple English language front end for Nani Search. 
+
+For the time being we will make two assumptions. The first is that we can get the user's input sentence in list form. The second is that we can represent our commands in list form. For example, we can express goto(office) as [goto, office], and look as [look]. 
+
+With these assumptions, the task of our natural language front end is to translate a user's natural sentence list into an acceptable command list. For example, we would want to translate [go,to,the,office] into [goto, office]. 
+
+We will write a high-level predicate, called command/2, that performs this translation. Its format will be 
+
+command(OutputList, InputList).
+The simplest commands are the ones that are made up of a verb with no object, such as look, list_possessions, and end. We can define this situation as follows. 
+
+command([V], InList):- verb(V, InList-[]).
+We will define verbs as in the earlier example, only this time we will include an extra argument, which identifies the command for use in building the output list. We can also allow as many different ways of expressing a command as we feel like as in the two ways to say 'look' and the three ways to say 'end.' 
+
+verb(look, [look|X]-X).
+verb(look, [look,around|X]-X).
+verb(list_possessions, [inventory|X]-X).
+verb(end, [end|X]-X).
+verb(end, [quit|X]-X).
+verb(end, [good,bye|X]-X).
+We can now test what we've got. 
+
+?- command(X,[look]).
+X = [look]
+
+?- command(X,[look,around]).
+X = [look]
+
+?- command(X,[inventory]).
+X = [list_possessions]
+
+?- command(X,[good,bye]).
+X = [end]
+We now move to the more complicated case of a command composed of a verb and an object. Using the grammatical constructs we saw in the beginning of this chapter, we could easily construct this grammar. However, we would like to have our interface recognize the semantics of the sentence as well as the formal grammar. 
+
+For example, we would like to make sure that 'goto' verbs have a place as an object, and that the other verbs have a thing as an object. We can include this knowledge in our natural language routine with another argument. 
+
+Here is how the extra argument is used to ensure the object type required by the verb matches the object type of the noun. 
+
+command([V,O], InList) :-
+  verb(Object_Type, V, InList-S1),
+  object(Object_Type, O, S1-[]).
+Here is how we specify the new verbs. 
+
+verb(place, goto, [go,to|X]-X).
+verb(place, goto, [go|X]-X).
+verb(place, goto, [move,to|X]-X).
+We can even recognize the case where the 'goto' verb was implied, that is if the user just typed in a room name without a preceding verb. In this case the list and its remainder are the same. The existing room/1 predicate is used to check if the list element is a room except when the room name is made up of two words. 
+
+The rule states "If we are looking for a verb at the beginning of a list, and the list begins with a room, then assume a 'goto' verb was found and return the full list for processing as the object of the 'goto' verb." 
+
+verb(place, goto, [X|Y]-[X|Y]):- room(X).
+verb(place, goto, [dining,room|Y]-[dining,room|Y]).
+Some of the verbs for things are 
+
+verb(thing, take, [take|X]-X).
+verb(thing, drop, [drop|X]-X).
+verb(thing, drop, [put|X]-X).
+verb(thing, turn_on, [turn,on|X]-X).
+Optionally, an 'object' may be preceded by a determiner. Here are the two rules for 'object,' which cover both cases. 
+
+object(Type, N, S1-S3) :-
+  det(S1-S2),
+  noun(Type, N, S2-S3).
+object(Type, N, S1-S2) :-
+  noun(Type, N, S1-S2).
+Since we are just going to throw the determiner away, we don't need to carry extra arguments. 
+
+det([the|X]- X).
+det([a|X]-X).
+det([an|X]-X).
+We define nouns like verbs, but use their occurrence in the game to define most of them. Only those names that are made up of two or more words require special treatment. Nouns of place are defined in the game as rooms. 
+
+noun(place, R, [R|X]-X):- room(R).
+noun(place, 'dining room', [dining,room|X]-X).
+Things are distinguished by appearing in a 'location' or 'have' predicate. Again, we make exceptions for cases where the thing name has two words. 
+
+noun(thing, T, [T|X]-X):- location(T,_).
+noun(thing, T, [T|X]-X):- have(T).
+noun(thing, 'washing machine', [washing,machine|X]-X).
+We can build into the grammar an awareness of the current game situation, and have the parser respond accordingly. For example, we might provide a command that allows the player to turn the room lights on or off. This command might be turn_on(light) as opposed to turn_on(flashlight). If the user types in 'turn on the light' we would like to determine which light was meant. 
+
+We can assume the room light was always meant, unless the player has the flashlight. In that case we will assume the flashlight was meant. 
+
+noun(thing, flashlight, [light|X], X):- have(flashlight).
+noun(thing, light, [light|X], X).
+We can now try it out. 
+
+?- command(X,[go,to,the,office]).
+X = [goto, office]
+
+?- command(X,[go,dining,room]).
+X = [goto, 'dining room']
+
+?- command(X,[kitchen]).
+X = [goto, kitchen]
+
+?- command(X,[take,the,apple]).
+X = [take, apple]
+
+?- command(X,[turn,on,the,light]).
+X = [turn_on, light]
+
+?- asserta(have(flashlight)), command(X,[turn,on,the,light]).
+X = [turn_on, flashlight]
+It should fail in the following situations that don't conform to our grammar or semantics. 
+
+?- command(X,[go,to,the,desk]).
+no
+
+?- command(X,[go,attic]).
+no
+
+?- command(X,[drop,an,office]).
+no
+Definite Clause Grammar 
+The use of difference lists for parsing is so common in Prolog, that most Prologs contain additional syntactic sugaring that simplifies the syntax by hiding the difference lists from view. This syntax is called Definite Clause Grammar (DCG), and looks like normal Prolog, only the neck symbol (:-) is replaced with an arrow (-->). The DCG representation is parsed and translated to normal Prolog with difference lists. 
+
+Using DCG, the 'sentence' predicate developed earlier would be phrased 
+
+sentence --> nounphrase, verbphrase.
+This would be translated into normal Prolog, with difference lists, but represented as separate arguments rather than as single arguments separated by a minus (-) as we implemented them. The above example would be translated into the following equivalent Prolog. 
+
+sentence(S1, S2):-
+  nounphrase(S1, S3),
+  verbphrase(S3, S2).
+Thus, if we define 'sentence' using DCG we still must call it with two arguments, even though the arguments were not explicitly stated in the DCG representation. 
+
+?- sentence([dog,chases,cat], []).
+The DCG vocabulary is represented by simple lists. 
+
+noun --> [dog].
+verb --> [chases].
+These are translated into Prolog as difference lists. 
+
+noun([dog|X], X).
+verb([chases|X], X).
+As with the natural language front end for Nani Search, we often want to mix pure Prolog with the grammar and include extra arguments to carry semantic information. The arguments are simply added as normal arguments and the pure Prolog is enclosed in curly brackets ({}) to prevent the DCG parser from translating it. Some of the complex rules in our game grammar would then be 
+
+command([V,O]) --> 
+  verb(Object_Type, V), 
+  object(Object_Type, O).
+
+verb(place, goto) --> [go, to].
+verb(thing, take) --> [take].
+
+object(Type, N) --> det, noun(Type, N).
+object(Type, N) --> noun(Type, N).
+
+det --> [the].
+det --> [a].
+
+noun(place,X) --> [X], {room(X)}.
+noun(place,'dining room') --> [dining, room].
+noun(thing,X) --> [X], {location(X,_)}.
+Because the DCG automatically takes off the first argument, we cannot examine it and send it along as we did in testing for a 'goto' verb when only the room name was given in the command. We can recognize this case with an additional 'command' clause. 
+
+command([goto, Place]) --> noun(place, Place).
+Reading Sentences 
+Now for the missing pieces. We must include a predicate that reads a normal sentence from the user and puts it into a list. Figure 15.2 contains a program to perform the task. It is composed of two parts. The first part reads a line of ASCII characters from the user, using the built-in predicate get0/1, which reads a single ASCII character. The line is assumed terminated by an ASCII 13, which is a carriage return. The second part uses DCG to parse the list of characters into a list of words, using another built-in predicate name/2, which converts a list of ASCII characters into an atom. 
+
+% read a line of words from the user
+
+read_list(L) :-
+  write('> '),
+  read_line(CL),
+  wordlist(L,CL,[]), !.
+
+read_line(L) :-
+  get0(C),
+  buildlist(C,L).
+
+buildlist(13,[]) :- !.
+buildlist(C,[C|X]) :-
+  get0(C2),
+  buildlist(C2,X).
+ 
+wordlist([X|Y]) --> word(X), whitespace, wordlist(Y).
+wordlist([X]) --> whitespace, wordlist(X).
+wordlist([X]) --> word(X).
+wordlist([X]) --> word(X), whitespace.
+
+word(W) --> charlist(X), {name(W,X)}.
+
+charlist([X|Y]) --> chr(X), charlist(Y).
+charlist([X]) --> chr(X).
+
+chr(X) --> [X],{X>=48}.
+
+whitespace --> whsp, whitespace.
+whitespace --> whsp.
+
+whsp --> [X], {X<48}.
+ 
+
+Figure 15.2. Program to read input sentences 
+
+The other missing piece converts a command in the format [goto,office] to a normal-looking command goto(office). This is done with a standard built-in predicate called 'univ', which is represented by an equal sign and two periods (=..). It translates a predicate and its arguments into a list whose first element is the predicate name and whose remaining elements are the arguments. It works in reverse as well, which is how we will want to use it. For example 
+
+?- pred(arg1,arg2) =..  X.
+X = [pred, arg1, arg2] 
+
+?- pred =..  X.
+X = [pred] 
+
+?- X =..  [pred,arg1,arg1].
+X = pred(arg1, arg2) 
+
+?- X =..  [pred].
+X = pred 
+We can now use these two predicates, along with command/2 to write get_command/1, which reads a sentence from the user and returns a command to command_loop/0. 
+
+get_command(C) :-
+  read_list(L),
+  command(CL,L),
+  C =..  CL, !.
+get_command(_) :-
+  write('I don''t understand'), nl, fail.
+We have now gone from writing the simple facts in the early chapters to a full adventure game with a natural language front end. You have also written an expert system, an intelligent genealogical database and a standard business application. Use these as a basis for continued learning by experimentation. 
+
+Exercises 
+Adventure Game
+1- Expand the natural language capabilities to handle all of the commands of Nani Search. 
+
+2- Expand the natural language front end to allow for compound sentences, such as "go to the kitchen and take the apple," or "take the apple and the broccoli." 
+
+3- Expand the natural language to allow for pronouns. To do this the 'noun' predicate must save the last noun and its type. When the word 'it' is encountered pick up that last noun. Then 'take the apple' followed by 'eat it' will work. (You will probably have to go directly to the difference list notation to make sentences such as "turn it on" work.) 
+
+Genealogical Database
+4- Build a natural language query system that responds to queries such as "Who are dennis' children?" and "How many nephews does jay have?" Assuming you write a predicate get_query/1 that returns a Prolog query, you can call the Prolog query with the call/1 built-in predicate. For example, 
+
+main_loop :-
+  repeat,
+  get_query(X),
+  call(X),
+  X = end.
+Copyright ©1990,1996-97 Amzi! inc. All Rights Reserved
+
+
